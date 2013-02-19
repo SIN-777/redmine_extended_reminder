@@ -1,6 +1,7 @@
 # Plugin's routes
 # See: http://guides.rubyonrails.org/routing.html
-namespace :redmine_extended_reminder do
-  match 'settings/update' => 'settings#update'
-  match 'settings/send_reminder' => 'settings#send_reminder'
+
+ActionController::Routing::Routes.draw do |map|
+  map.connect 'settings/update',        :controller => 'redmine_extended_reminder/settings', :action => :update
+  map.connect 'settings/send_reminder', :controller => 'redmine_extended_reminder/settings', :action => :send_reminder
 end

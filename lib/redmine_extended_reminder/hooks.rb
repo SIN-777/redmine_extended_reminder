@@ -4,7 +4,7 @@ module RedmineExtendedReminder
       controller = context[:controller]
       if controller.controller_name == 'my' && controller.action_name == 'account'
         controller.send(:render_to_string, {
-          :partial => "hooks/redmine_extended_reminder/setting",
+          :partial => "hooks/redmine_extended_reminder/setting.html",
           :locals => {:context => context}
         })
       end
