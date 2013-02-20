@@ -1,5 +1,5 @@
 <p>
-  <%= l(:extended_reminder_version_overdue_issues_mail_body, :count => @issues.size) %>
+  <%= l(:extended_reminder_version_overdue_issues_mail_body, :count => @issues.size, :project => @issues.first.project.name) %>
 </p>
 
 <%- @issues.group_by(&:fixed_version).each do |version, issues| -%>
