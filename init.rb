@@ -15,6 +15,10 @@ Redmine::Plugin.register :redmine_extended_reminder do
   author_url 'https://www.facebook.com/MAEDA.Go'
 
   settings(
-    :default => {'days' => '0', 'disable_on_non_woking_days' => 0},
-    :partial => 'redmine_extended_reminder/plugin_settings')  
+    :default => {
+      'days' => '0',
+      'disable_on_non_woking_days' => 0
+    },
+    :partial => 'redmine_extended_reminder/plugin_settings'
+  )  
 end
