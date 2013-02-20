@@ -39,20 +39,18 @@ module RedmineExtendedReminder
 
     def overdue_version_issues_reminders(options)
       overdue_versions = Version.find(:all, :conditions => ['effective_date is not NULL AND effective_date < ?', Date.today])
-      overdue_version_issues = overdue_versions.inject([]){|res, v| res += v.fixed_issues.select{|issue| !issue.closed?}}
 
-      reminders = {}
-      overdue_version_issues.each do |issue|
-        reminders[issue.project.id] ||= {}
-        (reminders[issue.project.id][issue.assigned_to_id] ||= []) << issue
-      end
+      s = ARCondition.new ["#{IssueStatus.table_name}.is_closed = ?", false]
+      s << ["#{Issue.table_name}.fixed_version_id IN (?)", overdue_versions.map(&:id)]
+      s << ["#{Issue.table_name}.assigned_to_id IN (?)", options[:users]] if options[:users].present?
+      overdue_version_issues = Issue.find(:all,
+                                          :include => [:status, :assigned_to, :project, :tracker],
+                                          :conditions => s.conditions).group_by(&:project)
 
-      reminders.each do |project_id, user_issues|
-        user_issues.each do |user_id, issues|
-          project = Project.find(project_id)
-          project_admins = project.users.select{|user| user.admin}
-          user = User.find(user_id)
-          deliver_overdue_version_issues_reminder(user, project_admins, issues)
+      overdue_version_issues.each do |project, issues|
+        project_admins = project.users.select{|user| user.admin}
+        issues.group_by(&:assigned_to).each do |assignee, issues|
+          deliver_overdue_version_issues_reminder(assignee, project_admins, issues)
         end
       end
     end
@@ -72,20 +70,13 @@ module RedmineExtendedReminder
       ActionMailer::Base.perform_deliveries = saved_status
     end
 
-    def overdue_version_issues_reminder(user, project_admins, issues)
-      version_grouped_issues = {}
-      versions = issues.map(&:fixed_version).compact.uniq.sort_by(&:id)
-      versions.each do |version|
-        version_grouped_issues[version.id] = issues.select{|issue| issue.fixed_version_id == version.id}
-      end
 
+    def overdue_version_issues_reminder(user, project_admins, issues)
       set_language_if_valid user.language
       recipients user.mail
       cc project_admins.map(&:mail)
       subject l(:extended_reminder_version_overdue_issues_mail_subject, :count => issues.size)
-      body :versions => versions,
-           :version_grouped_issues => version_grouped_issues,
-           :issues => issues,
+      body :issues => issues,
            :issues_url => url_for(:controller => 'issues', :action => 'index',
                                   :set_filter => 1, :assigned_to_id => user.id)
       render_multipart('overdue_version_issues_reminder', body)

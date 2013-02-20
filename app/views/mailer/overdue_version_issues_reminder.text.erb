@@ -1,12 +1,12 @@
 <%= l(:extended_reminder_version_overdue_issues_mail_body, :count => @issues.size) %>
 
-<%- @versions.each do |version| -%>
+<%- @issues.group_by(&:fixed_version).each do |version, issues| -%>
 
   <%= version.name %> (<%= version.effective_date %>)
   <%= "-" * 70 %>
-    <%- @version_grouped_issues[version.id].each do |issue| -%>
-      * <%= issue.project %> - <%= issue.tracker %> #<%= issue.id %>: (<%= issue.status %>) <%= issue.subject %>
-    <%- end -%>
+  <%- issues.each do |issue| -%>
+    * <%= issue.project %> - <%= issue.tracker %> #<%= issue.id %>: (<%= issue.status %>) <%= issue.subject %>
+  <%- end -%>
 
 <%- end -%>
 

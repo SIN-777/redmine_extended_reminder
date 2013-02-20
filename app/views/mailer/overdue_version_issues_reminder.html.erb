@@ -2,14 +2,14 @@
   <%= l(:extended_reminder_version_overdue_issues_mail_body, :count => @issues.size) %>
 </p>
 
-<%- @versions.each do |version| -%>
+<%- @issues.group_by(&:fixed_version).each do |version, issues| -%>
   <hr />
 
   <strong>
     <%= "#{version.name} (#{version.effective_date})" %>
   </strong>
   <ul>
-    <%- @version_grouped_issues[version.id].each do |issue| -%>
+    <%- issues.each do |issue| -%>
       <li>
         <%= h(issue.project) %> - <%= link_to h("#{issue.tracker} ##{issue.id}"), :controller => 'issues', :action => 'show', :id => issue, :only_path => false %>: (<%= h issue.status %>) <%= h issue.subject %>
       </li>
